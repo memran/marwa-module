@@ -1,23 +1,26 @@
 # marwa-module
 
-A framework-agnostic, PSR-11–friendly **module management** library for PHP.
+![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.1-blue?style=flat-square)
+![Downloads](https://img.shields.io/packagist/dt/memran/marwa-module?color=brightgreen&style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 
-It lets you keep reusable features in a `/modules` directory (or in Composer packages) where **each module has its own service provider and manifest**. The library discovers modules, exposes module metadata through a thin `ModuleBuilder`, and lets every module register its own routes, views, events, commands, migrations, and entities — without hard-wiring to Laravel, Symfony, or any specific framework.
+A **framework-agnostic, PSR-11–friendly module management library** for PHP.
 
-> ✅ Designed to work nicely with MarwaPHP
-> ✅ But also usable with any container that implements PSR-11
+It enables modular application architecture — each module is self-contained with its own `manifest.php`, routes, views, models, and service provider.  
+**marwa-module** discovers and bootstraps them automatically.
 
 ---
 
-## Features
+## ✨ Features
 
-- **Filesystem-based modules**: `modules/User/manifest.php`
-- **Composer-based modules** (via extra config or vendor scan)
-- **Single entry point**: `ModulesServiceProvider`
-- **Thin layer over container**: `ModuleBuilder`
-- **Manifest in PHP or JSON**
-- **Lazy loading**: modules can register routes/events only when the app asks
-- **Framework agnostic**: no Laravel/Symfony hard dependency
+- 📁 Filesystem and Composer-based module discovery
+- 🚀 One entry point (`ModulesServiceProvider`)
+- 🧱 `ModuleBuilder` for clean module introspection
+- 🧾 PHP or JSON manifest format
+- ⚡ Static in-memory caching for instant reloads
+- 💤 Lazy loading of routes, events, and commands
+- 🔌 Framework-agnostic, PSR-11 compatible
+- 🧪 Unit tested with PHPUnit
 
 ---
 
