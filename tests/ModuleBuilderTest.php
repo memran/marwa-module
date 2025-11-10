@@ -26,9 +26,9 @@ class ModuleBuilderTest extends TestCase
 
             $builder = new ModuleBuilder($registry, $container);
 
-            $handle = $builder->current('user');
+            $handle = $builder->current('User');
 
-            $this->assertSame('user', $handle->slug());
+            $this->assertSame('User', $handle->slug());
             $this->assertNotEmpty($handle->basePath());
             $this->assertIsArray($handle->manifest());
       }

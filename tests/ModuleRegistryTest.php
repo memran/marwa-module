@@ -21,11 +21,11 @@ class ModuleRegistryTest extends TestCase
             $repo = new ModuleRepository(__DIR__ . '/Fixtures/modules');
             $registry = new ModuleRegistry($repo);
 
-            $this->assertTrue($registry->has('user'));
+            $this->assertTrue($registry->has('User'));
 
-            $user = $registry->get('user');
+            $user = $registry->get('User');
             $this->assertNotNull($user);
-            $this->assertSame('user', $user->getSlug());
+            $this->assertSame('User', $user->getSlug());
       }
 
       public function test_registry_can_find_by_path(): void
@@ -37,6 +37,6 @@ class ModuleRegistryTest extends TestCase
 
             $found = $registry->findByPath($userModulePath);
             $this->assertNotNull($found);
-            $this->assertSame('user', $found->getSlug());
+            $this->assertSame('User', $found->getSlug());
       }
 }

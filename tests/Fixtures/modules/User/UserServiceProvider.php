@@ -19,6 +19,9 @@ class UserServiceProvider implements ModuleServiceProviderInterface
       public function register($app): void
       {
             // just mark that we were called
+            if (!isset($this->container)) {
+                  throw new \RuntimeException("Container not set in UserServiceProvider");
+            }
             $this->container->add('test.user.provider.registered', true);
       }
 

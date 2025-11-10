@@ -23,7 +23,7 @@ class ModulesServiceProvider implements ModuleServiceProviderInterface
             $builder    = new ModuleBuilder($registry, $app);
 
             // Bind core objects
-            if (method_exists($app, 'set')) {
+            if (method_exists($app, 'add')) {
                   $app->add(ModuleRepository::class, $repository);
                   $app->add(ModuleRegistry::class, $registry);
                   $app->add(ModuleBuilder::class, $builder);

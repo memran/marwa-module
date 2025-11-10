@@ -66,6 +66,9 @@ class FakeContainer implements ContainerInterface
        */
       public function bootProviders(): void
       {
+            if (empty($this->providers)) {
+                  return;
+            }
             foreach ($this->providers as $provider) {
                   $provider->boot($this);
             }
