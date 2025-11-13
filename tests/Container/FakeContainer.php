@@ -53,7 +53,7 @@ class FakeContainer implements ContainerInterface
 
             // give the container to the provider (container-aware style)
             if (method_exists($provider, 'setContainer')) {
-                  $provider->setContainer($this);
+                  call_user_func([$provider, 'setContainer'], $this);
             }
 
             $provider->register($this);

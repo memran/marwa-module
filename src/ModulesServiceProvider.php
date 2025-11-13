@@ -28,9 +28,11 @@ class ModulesServiceProvider implements ModuleServiceProviderInterface
                   $app->add(ModuleRegistry::class, $registry);
                   $app->add(ModuleBuilder::class, $builder);
             }
+            // var_dump($builder->all());
+            // die;
 
             // Automatically register each module’s service provider
-            foreach ($registry->all() as $module) {
+            foreach ($builder->all() as $module) {
                   foreach ($module->getProviders() as $providerClass) {
                         if (class_exists($providerClass)) {
                               // This uses your container’s method
