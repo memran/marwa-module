@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Marwa\Module;
 
-use Psr\Container\ContainerInterface;
 use RuntimeException;
 
 /**
@@ -14,8 +13,7 @@ use RuntimeException;
 class ModuleBuilder
 {
       public function __construct(
-            private ModuleRegistry $registry,
-            private ContainerInterface $container
+            private ModuleRegistry $registry
       ) {}
 
       /**
@@ -28,7 +26,7 @@ class ModuleBuilder
                   throw new RuntimeException("Module [$slug] not found.");
             }
 
-            return new ModuleHandle($module, $this->container);
+            return new ModuleHandle($module);
       }
 
       /**
@@ -41,7 +39,7 @@ class ModuleBuilder
                   throw new RuntimeException("No module registered for path [$path].");
             }
 
-            return new ModuleHandle($module, $this->container);
+            return new ModuleHandle($module);
       }
 
       public function has(string $slug): bool
@@ -52,10 +50,5 @@ class ModuleBuilder
       public function all(): array
       {
             return $this->registry->all();
-      }
-
-      public function container(): ContainerInterface
-      {
-            return $this->container;
       }
 }

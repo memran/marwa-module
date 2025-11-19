@@ -1,121 +1,95 @@
 <?php
-// src/ModuleRepository.php
 
 declare(strict_types=1);
 
 namespace Marwa\Module;
 
+use Marwa\Module\ModuleCache;
 use RuntimeException;
 
-/**
- * Discovers modules from one or more filesystem directories,
- * but uses ModuleCacheAdapter to avoid scanning every time.
- */
-class ModuleRepository
+final class ModuleRepository
 {
-      /**
-       * @param string|array<int,string> $modulesPath
-       */
+      /** @var string[] */
+      private array $modulePaths;
+
       public function __construct(
-            private string|array $modulesPath
+            string|array $modulesPath,
+            private ?string $cacheFile = null
       ) {
-            $this->modulesPath = (array) $modulesPath;
-            $this->modulesPath = array_map(
-                  static fn(string $p) => rtrim($p, DIRECTORY_SEPARATOR),
-                  $this->modulesPath
+            $this->modulePaths = array_map(
+                  fn(string $p) => rtrim($p, DIRECTORY_SEPARATOR),
+                  (array) $modulesPath
             );
       }
 
       /**
-       * @return Module[]
+       * Load modules. If cacheFile is set and not forced to refresh, use it.
+       * To force refresh: pass $forceRefresh=true to scan().
+       *
+       * @return array<string, Module>
        */
-      public function all(): array
+      public function all(bool $forceRefresh = false): array
       {
-            // 1. use in-memory cache if available
-            if (ModuleCacheAdapter::hasCache()) {
-                  return $this->hydrateFromCache(ModuleCacheAdapter::getCache());
-            }
-
-            // 2. otherwise scan all module paths
-            $cached = [];
-
-            foreach ($this->modulesPath as $path) {
-                  foreach ($this->scanFilesystem($path) as $slug => $row) {
-                        // last one wins if same slug appears in multiple paths
-                        $cached[$slug] = $row;
+            if ($this->cacheFile && !$forceRefresh) {
+                  $cached = ModuleCache::load($this->cacheFile);
+                  if (is_array($cached) && !empty($cached['modules'])) {
+                        return $this->hydrateFromCache($cached['modules']);
                   }
             }
 
-            // 3. store to static cache
-            ModuleCacheAdapter::setCache($cached);
+            $rows = $this->scanFilesystem();
 
-            // 4. return hydrated module objects
-            return $this->hydrateFromCache($cached);
+            if ($this->cacheFile) {
+                  ModuleCache::save($this->cacheFile, [
+                        'generated_at' => time(),
+                        'modules'      => $rows,
+                  ]);
+            }
+
+            return $this->hydrateFromCache($rows);
       }
 
       /**
-       * Scan a single directory for modules.
-       *
        * @return array<string, array{slug:string,basePath:string,manifest:array}>
        */
-      private function scanFilesystem(string $modulesPath): array
+      private function scanFilesystem(): array
       {
-            if (!is_dir($modulesPath)) {
-                  return [];
-            }
-
             $result = [];
-            $dir = new \DirectoryIterator($modulesPath);
 
-            foreach ($dir as $fileInfo) {
-                  if ($fileInfo->isDot() || !$fileInfo->isDir()) {
+            foreach ($this->modulePaths as $path) {
+                  if (!is_dir($path)) {
                         continue;
                   }
+                  $dir = new \DirectoryIterator($path);
+                  foreach ($dir as $fi) {
+                        if ($fi->isDot() || !$fi->isDir()) {
+                              continue;
+                        }
+                        $moduleDir = $fi->getPathname();
+                        $dirName   = $fi->getBasename();
+                        $manifest  = $this->loadManifest($moduleDir);
+                        //$manifest  = $this->validator->validate($manifest, $moduleDir, $dirName);
 
-                  $moduleDir = $fileInfo->getPathname();
-                  $manifest  = $this->loadManifest($moduleDir);
+                        $slug = $manifest['slug'] ?? $dirName;
 
-                  $slug = $manifest['slug'] ?? $fileInfo->getBasename();
-
-                  $result[$slug] = [
-                        'slug'     => $slug,
-                        'basePath' => $moduleDir,
-                        'manifest' => $manifest,
-                  ];
+                        $result[$slug] = [
+                              'slug'     => $slug,
+                              'basePath' => $moduleDir,
+                              'manifest' => $manifest,
+                        ];
+                  }
             }
-            
+
             return $result;
       }
 
-      /**
-       * Hydrate simple cached arrays into real Module objects.
-       *
-       * @param array<string, array{slug:string,basePath:string,manifest:array}> $cached
-       * @return Module[]
-       */
-      private function hydrateFromCache(array $cached): array
-      {
-            $modules = [];
-            foreach ($cached as $slug => $row) {
-                  $modules[$slug] = new Module(
-                        $row['slug'],
-                        $row['basePath'],
-                        $row['manifest']
-                  );
-            }
-            return $modules;
-      }
-
-      /**
-       * Try manifest.php then manifest.json
-       */
       private function loadManifest(string $moduleDir): array
       {
             $php  = $moduleDir . DIRECTORY_SEPARATOR . 'manifest.php';
             $json = $moduleDir . DIRECTORY_SEPARATOR . 'manifest.json';
 
             if (is_file($php)) {
-                  /** @var array $data */
+                  /** @var mixed $data */
                   $data = require $php;
                   if (!is_array($data)) {
                         throw new RuntimeException("manifest.php must return array in [$moduleDir]");
@@ -124,14 +98,27 @@ class ModuleRepository
             }
 
             if (is_file($json)) {
-                  $data = json_decode((string) file_get_contents($json), true);
+                  $raw = file_get_contents($json);
+                  $data = $raw !== false ? json_decode($raw, true) : null;
                   if (!is_array($data)) {
-                        throw new RuntimeException("manifest.json must be valid json in [$moduleDir]");
+                        throw new RuntimeException("manifest.json must be valid array in [$moduleDir]");
                   }
                   return $data;
             }
 
-            // minimal manifest
-            return [];
+            return []; // minimal; validator will fill defaults
+      }
+
+      /**
+       * @param array<string, array{slug:string,basePath:string,manifest:array}> $rows
+       * @return array<string, Module>
+       */
+      private function hydrateFromCache(array $rows): array
+      {
+            $out = [];
+            foreach ($rows as $slug => $row) {
+                  $out[$slug] = new Module($row['slug'], $row['basePath'], $row['manifest']);
+            }
+            return $out;
       }
 }

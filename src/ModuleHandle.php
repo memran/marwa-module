@@ -1,67 +1,41 @@
 <?php
-
+// src/ModuleHandle.php
 declare(strict_types=1);
 
 namespace Marwa\Module;
 
-use Psr\Container\ContainerInterface;
-
-/**
- * Module-facing API that a module service provider will use.
- * Thin layer over Module + Container.
- */
-class ModuleHandle
+final class ModuleHandle
 {
       public function __construct(
             private Module $module,
-            private ContainerInterface $container
       ) {}
 
       public function slug(): string
       {
-            return $this->module->getSlug();
+            return $this->module->slug();
       }
-
       public function name(): string
       {
-            return $this->module->getName();
+            return $this->module->name();
       }
-
-      public function version(): ?string
-      {
-            return $this->module->getVersion();
-      }
-
       public function basePath(): string
       {
-            return $this->module->getBasePath();
+            return $this->module->basePath();
       }
-
       public function path(string $key): ?string
       {
-            return $this->module->getPath($key);
+            return $this->module->path($key);
       }
-
       public function routes(string $channel = 'http'): ?string
       {
-            return $this->module->getRouteFile($channel);
+            return $this->module->routeFile($channel);
       }
-
-      /**
-       * @return string[]
-       */
-      public function migrations(): array
+      /** @return string[] */ public function migrations(): array
       {
-            return $this->module->getMigrations();
+            return $this->module->migrations();
       }
-
       public function manifest(): array
       {
-            return $this->module->getManifest();
-      }
-
-      public function container(): ContainerInterface
-      {
-            return $this->container;
+            return $this->module->manifest();
       }
 }

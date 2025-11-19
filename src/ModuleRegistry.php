@@ -14,14 +14,15 @@ class ModuleRegistry
       private array $modules = [];
 
       public function __construct(
-            private ModuleRepository $repository
+            private ModuleRepository $repository,
+            private bool $forceRefresh = false
       ) {
             $this->reload();
       }
 
       public function reload(): void
       {
-            $this->modules = $this->repository->all();
+            $this->modules = $this->repository->all($this->forceRefresh);
       }
 
       /**
@@ -50,7 +51,7 @@ class ModuleRegistry
             $path = realpath($path) ?: $path;
 
             foreach ($this->modules as $module) {
-                  $base = realpath($module->getBasePath()) ?: $module->getBasePath();
+                  $base = realpath($module->basePath()) ?: $module->basePath();
                   if (str_starts_with($path, $base)) {
                         return $module;
                   }
