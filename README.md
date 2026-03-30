@@ -1,4 +1,4 @@
-# marwa-module
+# Marwa Module
 
 ![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-blue?style=flat-square)
 ![CI](https://img.shields.io/github/actions/workflow/status/memran/marwa-module/ci.yml?branch=main&label=CI&style=flat-square)
@@ -7,20 +7,21 @@
 ![Downloads](https://img.shields.io/packagist/dt/memran/marwa-module?color=brightgreen&style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 
-A framework-agnostic, PSR-11-friendly module discovery library for modular PHP applications.
+A framework-agnostic PHP package for discovering, validating, and bootstrapping application modules from the filesystem.
 
-`marwa-module` scans one or more module directories, loads module manifests, exposes a typed registry for lookup by slug or path, and can register module service providers into a container-aware application bootstrap.
+`marwa-module` helps you organize large applications into self-contained modules with their own manifests, routes, resources, migrations, and service providers. It gives you a predictable discovery process, typed lookup APIs, optional caching, and a simple way to register module providers into a PSR-11-friendly application bootstrap.
 
 ## Features
 
-- Filesystem-based module discovery
-- PHP and JSON manifest support
-- Typed `Module`, `ModuleHandle`, `ModuleRegistry`, and `ModuleBuilder` APIs
-- Optional file-based cache for module metadata
-- Provider bootstrap through `ModulesServiceProvider`
-- Required module manifests with fail-fast schema validation
-- Path normalization to prevent accidental path escaping from module boundaries
-- PHPUnit, PHPStan, PHP-CS-Fixer, and GitHub Actions integration
+- Discover modules from one or more directories with deterministic scan order
+- Support both `manifest.php` and `manifest.json` module definitions
+- Enforce required manifest structure with fail-fast validation and duplicate slug protection
+- Expose clean typed APIs through `Module`, `ModuleHandle`, `ModuleRegistry`, and `ModuleBuilder`
+- Resolve routes, views, migrations, and other manifest-defined paths relative to the module root
+- Prevent unsafe absolute-path and `..` traversal escapes when resolving module paths
+- Cache discovered module metadata to a PHP file for faster repeated boots
+- Register module service providers through `ModulesServiceProvider`
+- Ship with PHPUnit, PHPStan, PHP-CS-Fixer, and GitHub Actions support for development workflows
 
 ## Requirements
 
