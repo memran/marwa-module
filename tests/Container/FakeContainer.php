@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Marwa\Module\Tests\Container;
 
-use Psr\Container\ContainerInterface;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
+use Marwa\Module\Tests\Support\MutableContainerInterface;
 
 /**
  * Very small container for testing.
@@ -13,64 +13,69 @@ use Marwa\Module\Contracts\ModuleServiceProviderInterface;
  * - supports set()
  * - supports addServiceProvider() which stores providers and runs register()
  */
-class FakeContainer implements ContainerInterface
+class FakeContainer implements MutableContainerInterface
 {
-      /**
-       * @var array<string,mixed>
-       */
-      private array $entries = [];
+    /**
+     * @var array<string,mixed>
+     */
+    private array $entries = [];
 
-      /**
-       * @var array<int,ModuleServiceProviderInterface>
-       */
-      private array $providers = [];
+    /**
+     * @var array<int,ModuleServiceProviderInterface>
+     */
+    private array $providers = [];
 
-      public function add(string $id, mixed $value): void
-      {
-            $this->entries[$id] = $value;
-      }
+    public function add(string $id, mixed $value): void
+    {
+        $this->entries[$id] = $value;
+    }
 
-      public function get(string $id): mixed
-      {
-            if (!$this->has($id)) {
-                  throw new \RuntimeException("Entry [$id] not found in container.");
-            }
-            return $this->entries[$id];
-      }
+    public function set(string $id, mixed $value): void
+    {
+        $this->add($id, $value);
+    }
 
-      public function has(string $id): bool
-      {
-            return array_key_exists($id, $this->entries);
-      }
+    public function get(string $id): mixed
+    {
+        if (!$this->has($id)) {
+            throw new \RuntimeException("Entry [$id] not found in container.");
+        }
+        return $this->entries[$id];
+    }
 
-      /**
-       * Simulate your $container->addServiceProvider(...) API.
-       */
-      public function addServiceProvider(string $providerClass): void
-      {
-            /** @var ModuleServiceProviderInterface $provider */
-            $provider = new $providerClass();
+    public function has(string $id): bool
+    {
+        return array_key_exists($id, $this->entries);
+    }
 
-            // give the container to the provider (container-aware style)
-            if (method_exists($provider, 'setContainer')) {
-                  call_user_func([$provider, 'setContainer'], $this);
-            }
+    /**
+     * Simulate your $container->addServiceProvider(...) API.
+     */
+    public function addServiceProvider(string $providerClass): void
+    {
+        /** @var ModuleServiceProviderInterface $provider */
+        $provider = new $providerClass();
 
-            $provider->register($this);
+        // give the container to the provider (container-aware style)
+        if (method_exists($provider, 'setContainer')) {
+            call_user_func([$provider, 'setContainer'], $this);
+        }
 
-            $this->providers[] = $provider;
-      }
+        $provider->register($this);
 
-      /**
-       * Call boot() on all registered providers (if any)
-       */
-      public function bootProviders(): void
-      {
-            if (empty($this->providers)) {
-                  return;
-            }
-            foreach ($this->providers as $provider) {
-                  $provider->boot($this);
-            }
-      }
+        $this->providers[] = $provider;
+    }
+
+    /**
+     * Call boot() on all registered providers (if any)
+     */
+    public function bootProviders(): void
+    {
+        if (empty($this->providers)) {
+            return;
+        }
+        foreach ($this->providers as $provider) {
+            $provider->boot($this);
+        }
+    }
 }

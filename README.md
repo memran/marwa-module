@@ -4,60 +4,185 @@
 ![Downloads](https://img.shields.io/packagist/dt/memran/marwa-module?color=brightgreen&style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 
-A **framework-agnostic, PSR-11–friendly module management library** for PHP.
+A framework-agnostic, PSR-11-friendly module discovery library for modular PHP applications.
 
-It enables modular application architecture — each module is self-contained with its own `manifest.php`, routes, views, models, and service provider.  
-**marwa-module** discovers and bootstraps them automatically.
+`marwa-module` scans one or more module directories, loads module manifests, exposes a typed registry for lookup by slug or path, and can register module service providers into a container-aware application bootstrap.
 
----
+## Features
 
-## ✨ Features
+- Filesystem-based module discovery
+- PHP and JSON manifest support
+- Typed `Module`, `ModuleHandle`, `ModuleRegistry`, and `ModuleBuilder` APIs
+- Optional file-based cache for module metadata
+- Provider bootstrap through `ModulesServiceProvider`
+- Path normalization to prevent accidental path escaping from module boundaries
+- PHPUnit, PHPStan, PHP-CS-Fixer, and GitHub Actions integration
 
-- 📁 Filesystem and Composer-based module discovery
-- 🚀 One entry point (`ModulesServiceProvider`)
-- 🧱 `ModuleBuilder` for clean module introspection
-- 🧾 PHP or JSON manifest format
-- ⚡ Static in-memory caching for instant reloads
-- 💤 Lazy loading of routes, events, and commands
-- 🔌 Framework-agnostic, PSR-11 compatible
-- 🧪 Unit tested with PHPUnit
+## Requirements
 
----
+- PHP 8.1+
+- Composer
+- A PSR-11-compatible container if you use `ModulesServiceProvider`
 
-## Directory structure
-
-```text
-project-root/
-  src/
-  vendor/
-  modules/
-    User/
-      manifest.php
-      src/
-        Controllers/
-        Models/
-        Views/
-        Commands/
-        Events/
-        Migrations/
-        Entity/
-      routes/
-        http.php
-    Billing/
-      manifest.json
-```
-
-## Installing
+## Installation
 
 ```bash
 composer require memran/marwa-module
 ```
 
-## Requirements
+## Quick Start
 
-- PHP 8.1+
-- PSR-11 container (or adapter that implements it)
-- Filesystem access to /modules
+```php
+<?php
+
+declare(strict_types=1);
+
+use Marwa\Module\ModuleBuilder;
+use Marwa\Module\ModuleRegistry;
+use Marwa\Module\ModuleRepository;
+
+$modulesPath = __DIR__ . '/modules';
+$cacheFile = __DIR__ . '/storage/cache/modules.php';
+
+$repository = new ModuleRepository($modulesPath, $cacheFile);
+$registry = new ModuleRegistry($repository);
+$builder = new ModuleBuilder($registry);
+
+$user = $builder->current('user');
+
+$user->slug();
+$user->routes('http');
+$user->path('views');
+$user->migrations();
+```
+
+## Module Layout
+
+```text
+project-root/
+  modules/
+    User/
+      manifest.php
+      routes/
+        http.php
+      src/
+      resources/
+```
+
+Example `manifest.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+return [
+    'name' => 'User Module',
+    'slug' => 'user',
+    'version' => '1.0.0',
+    'providers' => [
+        App\Modules\User\UserServiceProvider::class,
+    ],
+    'paths' => [
+        'views' => 'resources/views',
+    ],
+    'routes' => [
+        'http' => 'routes/http.php',
+    ],
+    'migrations' => [
+        'database/migrations/2026_01_01_000000_create_users_table.php',
+    ],
+];
+```
+
+The library also accepts `manifest.json` with the same structure.
+
+## Service Provider Bootstrap
+
+If your application container supports `add()` or `set()` and `addServiceProvider()`, you can register the package in one step:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Marwa\Module\ModulesServiceProvider;
+
+$provider = new ModulesServiceProvider(
+    __DIR__ . '/modules',
+    __DIR__ . '/storage/cache/modules.php'
+);
+
+$provider->register($app);
+```
+
+## Public API Overview
+
+- `ModuleRepository`: scans module directories and optionally persists cache files.
+- `ModuleRegistry`: keeps discovered modules in memory and resolves modules by slug or path.
+- `ModuleBuilder`: high-level lookup API returning `ModuleHandle` instances.
+- `Module`: immutable module metadata wrapper.
+- `ModulesServiceProvider`: registers the repository, registry, builder, and module providers.
+
+## Configuration Notes
+
+- Keep the cache file in an application-controlled writable directory.
+- Module paths declared in manifests are treated as relative to the module root.
+- Absolute paths and `..` traversal segments are ignored when resolving module asset paths.
+- Provider classes declared in manifests must exist and implement `Marwa\Module\Contracts\ModuleServiceProviderInterface`.
+
+## Development
+
+Install dependencies:
+
+```bash
+composer install
+```
+
+Available scripts:
+
+```bash
+composer test
+composer test:coverage
+composer analyse
+composer lint
+composer fix
+composer ci
+```
+
+## Testing
+
+- Test runner: PHPUnit
+- Coverage command: `composer test:coverage`
+- Test files live in `tests/`
+- Fixture-backed module examples live in `tests/Fixtures/`
+
+## Static Analysis And Linting
+
+- Static analysis: PHPStan via `phpstan.neon.dist`
+- Coding style: PHP-CS-Fixer via `.php-cs-fixer.dist.php`
+- CI workflow: `.github/workflows/ci.yml`
+
+## Production Notes
+
+- Treat manifest files and cache file locations as trusted application assets.
+- Prefer writing cache files under `storage/` or another private writable directory.
+- If a cache file is corrupted, the repository falls back to a fresh filesystem scan.
+- Invalid manifests and invalid provider classes fail fast with descriptive runtime exceptions.
+
+## Contributing
+
+- Keep changes small and focused.
+- Add or update PHPUnit coverage for behavior changes.
+- Run `composer ci` before opening a pull request.
+- Keep documentation aligned with actual behavior and scripts.
+
+## Release Checklist
+
+1. Run `composer ci`
+2. Review public API changes and backward compatibility
+3. Update README or examples if usage changed
+4. Tag and publish the package
 
 ## License
 

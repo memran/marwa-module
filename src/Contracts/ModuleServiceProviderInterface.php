@@ -10,17 +10,17 @@ namespace Marwa\Module\Contracts;
  */
 interface ModuleServiceProviderInterface
 {
-      /**
-       * Register services, bindings, listeners, etc.
-       *
-       * @param mixed $app PSR-11 container or framework app
-       */
-      public function register($app): void;
+    /**
+     * Register services, bindings, listeners, etc.
+     *
+     * @param mixed $app PSR-11 container or framework app
+     */
+    public function register($app): void;
 
-      /**
-       * Boot logic that depends on other services being registered.
-       *
-       * @param mixed $app
-       */
-      public function boot($app): void;
+    /**
+     * Boot logic that depends on other services being registered.
+     *
+     * @param mixed $app
+     */
+    public function boot($app): void;
 }

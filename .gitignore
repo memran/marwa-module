@@ -18,6 +18,7 @@ Thumbs.db
 /.phpunit.cache/
 /phpunit.xml
 /.phpunit.result.cache
+/.phpstan/
 
 # Logs
 /storage/logs

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Marwa\Module;
 
-use RuntimeException;
+use Marwa\Module\Exception\ModuleNotFoundException;
 
 /**
  * Thin layer over container + registry.
@@ -12,43 +12,46 @@ use RuntimeException;
  */
 class ModuleBuilder
 {
-      public function __construct(
-            private ModuleRegistry $registry
-      ) {}
+    public function __construct(
+        private ModuleRegistry $registry
+    ) {}
 
-      /**
-       * Get a handle by module slug.
-       */
-      public function current(string $slug): ModuleHandle
-      {
-            $module = $this->registry->get($slug);
-            if ($module === null) {
-                  throw new RuntimeException("Module [$slug] not found.");
-            }
+    /**
+     * Get a handle by module slug.
+     */
+    public function current(string $slug): ModuleHandle
+    {
+        $module = $this->registry->get($slug);
+        if ($module === null) {
+            throw new ModuleNotFoundException("Module [$slug] not found.");
+        }
 
-            return new ModuleHandle($module);
-      }
+        return new ModuleHandle($module);
+    }
 
-      /**
-       * Resolve handle by path inside the module.
-       */
-      public function for(string $path): ModuleHandle
-      {
-            $module = $this->registry->findByPath($path);
-            if ($module === null) {
-                  throw new RuntimeException("No module registered for path [$path].");
-            }
+    /**
+     * Resolve handle by path inside the module.
+     */
+    public function for(string $path): ModuleHandle
+    {
+        $module = $this->registry->findByPath($path);
+        if ($module === null) {
+            throw new ModuleNotFoundException("No module registered for path [$path].");
+        }
 
-            return new ModuleHandle($module);
-      }
+        return new ModuleHandle($module);
+    }
 
-      public function has(string $slug): bool
-      {
-            return $this->registry->has($slug);
-      }
+    public function has(string $slug): bool
+    {
+        return $this->registry->has($slug);
+    }
 
-      public function all(): array
-      {
-            return $this->registry->all();
-      }
+    /**
+     * @return array<string, Module>
+     */
+    public function all(): array
+    {
+        return $this->registry->all();
+    }
 }
