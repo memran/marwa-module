@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Marwa\Module\Tests;
 
+use Marwa\Module\Contracts\ModuleRegistryInterface;
+use Marwa\Module\Contracts\ModuleRepositoryInterface;
 use Marwa\Module\Exception\ModuleConfigurationException;
 use Marwa\Module\ModuleBuilder;
 use Marwa\Module\ModuleRegistry;
@@ -36,6 +38,8 @@ class ModulesServiceProviderTest extends TestCase
         $provider = new ModulesServiceProvider($modulesPath);
         $provider->register($container);
 
+        $this->assertTrue($container->has(ModuleRepositoryInterface::class));
+        $this->assertTrue($container->has(ModuleRegistryInterface::class));
         $this->assertTrue($container->has(ModuleRepository::class));
         $this->assertTrue($container->has(ModuleRegistry::class));
         $this->assertTrue($container->has(ModuleBuilder::class));

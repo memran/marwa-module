@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Marwa\Module;
 
 use JsonException;
+use Marwa\Module\Contracts\ModuleRepositoryInterface;
 use Marwa\Module\Exception\InvalidManifestException;
 use Marwa\Support\Arr;
 
-final class ModuleRepository
+final class ModuleRepository implements ModuleRepositoryInterface
 {
     /** @var string[] */
     private array $modulePaths;

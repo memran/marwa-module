@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Marwa\Module;
 
+use Marwa\Module\Contracts\ModuleRegistryInterface;
+use Marwa\Module\Contracts\ModuleRepositoryInterface;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 use Marwa\Module\Exception\ModuleConfigurationException;
 
@@ -25,6 +27,8 @@ final class ModulesServiceProvider implements ModuleServiceProviderInterface
         $builder = new ModuleBuilder($registry);
         $registeredProviders = [];
 
+        $this->store($app, ModuleRepositoryInterface::class, $repository);
+        $this->store($app, ModuleRegistryInterface::class, $registry);
         $this->store($app, ModuleRepository::class, $repository);
         $this->store($app, ModuleRegistry::class, $registry);
         $this->store($app, ModuleBuilder::class, $builder);

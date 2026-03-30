@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace Marwa\Module;
 
+use Marwa\Module\Contracts\ModuleRegistryInterface;
+use Marwa\Module\Contracts\ModuleRepositoryInterface;
 use Marwa\Module\Support\ModulePath;
 
 /**
  * Cached access to modules discovered by the repository.
  * Also helps to find module by path.
  */
-class ModuleRegistry
+class ModuleRegistry implements ModuleRegistryInterface
 {
     /** @var array<string,Module> */
     private array $modules = [];
 
     public function __construct(
-        private ModuleRepository $repository,
+        private ModuleRepositoryInterface $repository,
         private bool $forceRefresh = false
     ) {
         $this->reload();

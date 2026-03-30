@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Marwa\Module;
 
+use Marwa\Module\Contracts\ModuleRegistryInterface;
 use Marwa\Module\Exception\ModuleNotFoundException;
 
 /**
@@ -13,7 +14,7 @@ use Marwa\Module\Exception\ModuleNotFoundException;
 class ModuleBuilder
 {
     public function __construct(
-        private ModuleRegistry $registry
+        private ModuleRegistryInterface $registry
     ) {}
 
     /**
