@@ -1,6 +1,9 @@
 # marwa-module
 
 ![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-blue?style=flat-square)
+![CI](https://img.shields.io/github/actions/workflow/status/memran/marwa-module/ci.yml?branch=main&label=CI&style=flat-square)
+![Packagist Version](https://img.shields.io/packagist/v/memran/marwa-module?style=flat-square)
+![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen?style=flat-square)
 ![Downloads](https://img.shields.io/packagist/dt/memran/marwa-module?color=brightgreen&style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 
