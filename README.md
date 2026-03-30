@@ -1,6 +1,6 @@
 # marwa-module
 
-![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.1-blue?style=flat-square)
+![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-blue?style=flat-square)
 ![Downloads](https://img.shields.io/packagist/dt/memran/marwa-module?color=brightgreen&style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 
@@ -21,7 +21,7 @@ A framework-agnostic, PSR-11-friendly module discovery library for modular PHP a
 
 ## Requirements
 
-- PHP 8.1+
+- PHP 8.2+
 - Composer
 - A PSR-11-compatible container if you use `ModulesServiceProvider`
 
