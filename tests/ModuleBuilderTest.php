@@ -22,7 +22,6 @@ class ModuleBuilderTest extends TestCase
 
         $this->assertSame('user', $handle->slug());
         $this->assertNotEmpty($handle->basePath());
-        $this->assertIsArray($handle->manifest());
     }
 
     public function test_builder_resolves_handle_from_path(): void

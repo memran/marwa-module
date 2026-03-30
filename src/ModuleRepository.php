@@ -23,10 +23,6 @@ final class ModuleRepository implements ModuleRepositoryInterface
     ) {
         $paths = [];
         foreach ((array) $modulesPath as $path) {
-            if (!is_string($path)) {
-                continue;
-            }
-
             $path = rtrim(trim($path), DIRECTORY_SEPARATOR);
             if ($path === '') {
                 continue;

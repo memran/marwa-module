@@ -35,7 +35,7 @@ final class ModulesServiceProvider implements ModuleServiceProviderInterface
 
         foreach ($registry->all() as $module) {
             foreach ($module->providers() as $provider) {
-                if (!is_string($provider) || $provider === '') {
+                if ($provider === '') {
                     continue;
                 }
 
