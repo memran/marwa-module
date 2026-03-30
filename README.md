@@ -15,6 +15,7 @@ A framework-agnostic, PSR-11-friendly module discovery library for modular PHP a
 - Typed `Module`, `ModuleHandle`, `ModuleRegistry`, and `ModuleBuilder` APIs
 - Optional file-based cache for module metadata
 - Provider bootstrap through `ModulesServiceProvider`
+- Required module manifests with fail-fast schema validation
 - Path normalization to prevent accidental path escaping from module boundaries
 - PHPUnit, PHPStan, PHP-CS-Fixer, and GitHub Actions integration
 
@@ -97,6 +98,15 @@ return [
 
 The library also accepts `manifest.json` with the same structure.
 
+Manifest rules:
+
+- A module directory must contain exactly one manifest file: `manifest.php` or `manifest.json`
+- Directories without a manifest are ignored during discovery
+- A manifest must define a non-empty string `slug`
+- `providers` and `migrations` must be arrays of non-empty strings
+- `paths` and `routes` must be maps with non-empty string keys and values
+- Duplicate module slugs across discovered modules are rejected
+
 ## Service Provider Bootstrap
 
 If your application container supports `add()` or `set()` and `addServiceProvider()`, you can register the package in one step:
@@ -127,9 +137,11 @@ $provider->register($app);
 ## Configuration Notes
 
 - Keep the cache file in an application-controlled writable directory.
+- A directory is only discovered as a module when it contains a valid manifest.
 - Module paths declared in manifests are treated as relative to the module root.
 - Absolute paths and `..` traversal segments are ignored when resolving module asset paths.
 - Provider classes declared in manifests must exist and implement `Marwa\Module\Contracts\ModuleServiceProviderInterface`.
+- If both `manifest.php` and `manifest.json` exist in the same module directory, discovery fails with an exception.
 
 ## Development
 
@@ -168,7 +180,7 @@ composer ci
 - Treat manifest files and cache file locations as trusted application assets.
 - Prefer writing cache files under `storage/` or another private writable directory.
 - If a cache file is corrupted, the repository falls back to a fresh filesystem scan.
-- Invalid manifests and invalid provider classes fail fast with descriptive runtime exceptions.
+- Invalid, ambiguous, or duplicate manifests fail fast with descriptive runtime exceptions.
 
 ## Contributing
 

@@ -108,6 +108,81 @@ class ModuleRepositoryTest extends TestCase
         $repo->all();
     }
 
+    public function test_it_ignores_directories_without_a_manifest(): void
+    {
+        $modulePath = $this->tempRoot . '/NoManifestModule';
+        mkdir($modulePath, 0777, true);
+
+        $repo = new ModuleRepository($this->tempRoot);
+
+        $this->assertSame([], $repo->all());
+    }
+
+    public function test_it_throws_when_both_manifest_formats_exist(): void
+    {
+        $modulePath = $this->tempRoot . '/ConflictingModule';
+        mkdir($modulePath, 0777, true);
+        file_put_contents($modulePath . '/manifest.php', <<<'PHP'
+<?php
+return [
+    'slug' => 'conflicting-module',
+];
+PHP);
+        file_put_contents($modulePath . '/manifest.json', '{"slug":"conflicting-module"}');
+
+        $repo = new ModuleRepository($this->tempRoot);
+
+        $this->expectException(InvalidManifestException::class);
+
+        $repo->all();
+    }
+
+    public function test_it_throws_for_invalid_manifest_schema(): void
+    {
+        $modulePath = $this->tempRoot . '/SchemaBrokenModule';
+        mkdir($modulePath, 0777, true);
+        file_put_contents($modulePath . '/manifest.php', <<<'PHP'
+<?php
+return [
+    'slug' => 'schema-broken',
+    'providers' => 'not-an-array',
+];
+PHP);
+
+        $repo = new ModuleRepository($this->tempRoot);
+
+        $this->expectException(InvalidManifestException::class);
+
+        $repo->all();
+    }
+
+    public function test_it_throws_for_duplicate_module_slugs(): void
+    {
+        $firstPath = $this->tempRoot . '/FirstModule';
+        $secondPath = $this->tempRoot . '/SecondModule';
+        mkdir($firstPath, 0777, true);
+        mkdir($secondPath, 0777, true);
+
+        file_put_contents($firstPath . '/manifest.php', <<<'PHP'
+<?php
+return [
+    'slug' => 'duplicate-slug',
+];
+PHP);
+        file_put_contents($secondPath . '/manifest.php', <<<'PHP'
+<?php
+return [
+    'slug' => 'duplicate-slug',
+];
+PHP);
+
+        $repo = new ModuleRepository($this->tempRoot);
+
+        $this->expectException(InvalidManifestException::class);
+
+        $repo->all();
+    }
+
     private function removeDirectory(string $path): void
     {
         if (!is_dir($path)) {

@@ -88,11 +88,22 @@ final class ModuleRepository implements ModuleRepositoryInterface
                 }
                 $moduleDir = $fi->getPathname();
                 $dirName   = $fi->getBasename();
-                $manifest  = $this->normalizeManifest(
+                if (!$this->hasManifest($moduleDir)) {
+                    continue;
+                }
+
+                $manifest  = $this->validateManifest(
                     $this->loadManifest($moduleDir),
-                    $dirName
+                    $dirName,
+                    $moduleDir
                 );
                 $slug = (string) $manifest['slug'];
+
+                if (isset($result[$slug])) {
+                    throw new InvalidManifestException(
+                        "Duplicate module slug [$slug] found in [$moduleDir]."
+                    );
+                }
 
                 $result[$slug] = [
                       'slug'     => $slug,
@@ -114,6 +125,12 @@ final class ModuleRepository implements ModuleRepositoryInterface
     {
         $php  = $moduleDir . DIRECTORY_SEPARATOR . 'manifest.php';
         $json = $moduleDir . DIRECTORY_SEPARATOR . 'manifest.json';
+
+        if (is_file($php) && is_file($json)) {
+            throw new InvalidManifestException(
+                "Module [$moduleDir] cannot define both manifest.php and manifest.json."
+            );
+        }
 
         if (is_file($php)) {
             /** @var mixed $data */
@@ -154,9 +171,14 @@ final class ModuleRepository implements ModuleRepositoryInterface
      * @param array<string, mixed> $manifest
      * @return array<string, mixed>
      */
-    private function normalizeManifest(array $manifest, string $dirName): array
+    private function validateManifest(array $manifest, string $dirName, string $moduleDir): array
     {
-        $slug = Arr::get($manifest, 'slug', $dirName);
+        $slug = Arr::get($manifest, 'slug');
+        if (!is_string($slug) || trim($slug) === '') {
+            throw new InvalidManifestException("Module [$moduleDir] must define a non-empty string slug.");
+        }
+
+        $slug = trim($slug);
         $name = Arr::get($manifest, 'name', $slug);
         $version = Arr::get($manifest, 'version');
         $providers = Arr::get($manifest, 'providers', []);
@@ -164,30 +186,26 @@ final class ModuleRepository implements ModuleRepositoryInterface
         $routes = Arr::get($manifest, 'routes', []);
         $migrations = Arr::get($manifest, 'migrations', []);
 
-        $normalizedProviders = [];
-        if (is_array($providers)) {
-            foreach ($providers as $provider) {
-                if (!is_string($provider)) {
-                    continue;
-                }
-
-                $provider = trim($provider);
-                if ($provider === '') {
-                    continue;
-                }
-
-                $normalizedProviders[] = $provider;
-            }
+        if ($name !== null && (!is_string($name) || trim($name) === '')) {
+            throw new InvalidManifestException("Module [$moduleDir] has an invalid [name] value.");
+        }
+        if ($version !== null && (!is_string($version) || trim($version) === '')) {
+            throw new InvalidManifestException("Module [$moduleDir] has an invalid [version] value.");
         }
 
+        $normalizedProviders = $this->validateStringList($providers, 'providers', $moduleDir);
+        $normalizedPaths = $this->validateStringMap($paths, 'paths', $moduleDir);
+        $normalizedRoutes = $this->validateStringMap($routes, 'routes', $moduleDir);
+        $normalizedMigrations = $this->validateStringList($migrations, 'migrations', $moduleDir);
+
         return [
-              'name'       => is_string($name) && $name !== '' ? $name : $dirName,
-              'slug'       => is_string($slug) && $slug !== '' ? $slug : $dirName,
-              'version'    => is_string($version) && $version !== '' ? $version : null,
-              'providers'  => array_values(array_unique($normalizedProviders)),
-              'paths'      => is_array($paths) ? $paths : [],
-              'routes'     => is_array($routes) ? $routes : [],
-              'migrations' => is_array($migrations) ? array_values($migrations) : [],
+              'name'       => is_string($name) ? trim($name) : $dirName,
+              'slug'       => $slug,
+              'version'    => is_string($version) ? trim($version) : null,
+              'providers'  => $normalizedProviders,
+              'paths'      => $normalizedPaths,
+              'routes'     => $normalizedRoutes,
+              'migrations' => $normalizedMigrations,
         ];
     }
 
@@ -217,9 +235,69 @@ final class ModuleRepository implements ModuleRepositoryInterface
                 throw new InvalidManifestException("Module [$resolvedSlug] is missing a valid manifest.");
             }
 
-            $normalizedManifest = $this->normalizeManifest($manifest, basename($basePath));
+            $normalizedManifest = $this->validateManifest($manifest, basename($basePath), $basePath);
             $out[$resolvedSlug] = new Module($resolvedSlug, $basePath, $normalizedManifest);
         }
         return $out;
+    }
+
+    private function hasManifest(string $moduleDir): bool
+    {
+        return is_file($moduleDir . DIRECTORY_SEPARATOR . 'manifest.php')
+            || is_file($moduleDir . DIRECTORY_SEPARATOR . 'manifest.json');
+    }
+
+    /**
+     * @param mixed $value
+     * @return string[]
+     */
+    private function validateStringList(mixed $value, string $field, string $moduleDir): array
+    {
+        if (!is_array($value)) {
+            throw new InvalidManifestException("Module [$moduleDir] field [$field] must be an array.");
+        }
+
+        $normalized = [];
+        foreach ($value as $entry) {
+            if (!is_string($entry) || trim($entry) === '') {
+                throw new InvalidManifestException(
+                    "Module [$moduleDir] field [$field] must contain only non-empty strings."
+                );
+            }
+
+            $normalized[] = trim($entry);
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<string, string>
+     */
+    private function validateStringMap(mixed $value, string $field, string $moduleDir): array
+    {
+        if (!is_array($value)) {
+            throw new InvalidManifestException("Module [$moduleDir] field [$field] must be an array.");
+        }
+
+        $normalized = [];
+        foreach ($value as $key => $entry) {
+            if (!is_string($key) || trim($key) === '') {
+                throw new InvalidManifestException(
+                    "Module [$moduleDir] field [$field] must use non-empty string keys."
+                );
+            }
+
+            if (!is_string($entry) || trim($entry) === '') {
+                throw new InvalidManifestException(
+                    "Module [$moduleDir] field [$field] must contain only non-empty string values."
+                );
+            }
+
+            $normalized[trim($key)] = trim($entry);
+        }
+
+        return $normalized;
     }
 }
