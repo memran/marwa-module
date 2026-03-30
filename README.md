@@ -57,6 +57,61 @@ $user->path('views');
 $user->migrations();
 ```
 
+## Full Example
+
+A complete runnable example lives in `examples/`.
+
+Run it with:
+
+```bash
+php examples/index.php
+```
+
+The example demonstrates:
+
+- module discovery from both `manifest.php` and `manifest.json`
+- route, view, and migration path resolution
+- lookup by slug and by filesystem path
+- cache file usage
+- provider registration through `ModulesServiceProvider`
+- provider boot execution inside a minimal PSR-11-compatible application container
+- JSON output suitable for CLI or browser responses
+
+Example output:
+
+```json
+{
+    "modules": [
+        {
+            "slug": "auth",
+            "name": "Auth Module",
+            "version": "1.0.0",
+            "route": "/path/to/examples/modules/auth/routes/http.php",
+            "views": "/path/to/examples/modules/auth/resources/views",
+            "providers": [
+                "Marwa\\Module\\Examples\\Modules\\Auth\\AuthServiceProvider"
+            ],
+            "migrations": [
+                "/path/to/examples/modules/auth/database/migrations/2026_01_01_000000_create_auth_tables.php"
+            ]
+        }
+    ],
+    "lookups": {
+        "current_auth_name": "Auth Module",
+        "resolved_by_path": "auth"
+    },
+    "bootstrap": {
+        "repository_registered": true,
+        "registry_registered": true,
+        "builder_registered": true,
+        "auth_provider_registered": true,
+        "auth_provider_booted": true,
+        "billing_provider_registered": true,
+        "billing_provider_booted": true
+    }
+}
+```
+
 ## Module Layout
 
 ```text

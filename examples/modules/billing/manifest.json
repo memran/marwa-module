@@ -1,0 +1,17 @@
+{
+  "name": "Billing Module",
+  "slug": "billing",
+  "version": "2.3.0",
+  "providers": [
+    "Marwa\\Module\\Examples\\Modules\\Billing\\BillingServiceProvider"
+  ],
+  "paths": {
+    "views": "resources/views"
+  },
+  "routes": {
+    "http": "routes/http.php"
+  },
+  "migrations": [
+    "database/migrations/2026_01_01_000000_create_invoices_table.php"
+  ]
+}
