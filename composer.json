@@ -26,7 +26,7 @@
   },
   "require": {
     "php": ">=8.2",
-    "memran/marwa-entity": "dev-main",
+    "memran/marwa-entity": "^1.0.0",
     "memran/marwa-support": "^1.2.1",
     "psr/container": "^1.1 || ^2.0"
   },
