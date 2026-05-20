@@ -31,10 +31,21 @@ final class ModuleHandle
     {
         return $this->module->routeFile($channel);
     }
-    /** @return string[] */ public function migrations(): array
+    /** @return string[] */
+    public function migrations(): array
     {
         return $this->module->migrations();
     }
+    /** @return string[] */
+    public function providers(): array
+    {
+        return $this->module->providers();
+    }
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->module->get($key, $default);
+    }
+
     /**
      * @return array<string, mixed>
      */

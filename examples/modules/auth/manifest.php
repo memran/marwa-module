@@ -8,6 +8,8 @@ return [
     'name' => 'Auth Module',
     'slug' => 'auth',
     'version' => '1.0.0',
+    'menu' => 'Authentication',
+    'permissions' => ['auth.manage', 'auth.login'],
     'providers' => [
         AuthServiceProvider::class,
     ],

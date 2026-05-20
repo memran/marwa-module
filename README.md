@@ -16,7 +16,10 @@ A framework-agnostic PHP package for discovering, validating, and bootstrapping 
 - Discover modules from one or more directories with deterministic scan order
 - Support both `manifest.php` and `manifest.json` module definitions
 - Enforce required manifest structure with fail-fast validation and duplicate slug protection
-- Expose clean typed APIs through `Module`, `ModuleHandle`, `ModuleRegistry`, and `ModuleBuilder`
+- Preserve custom manifest keys (e.g. `menu`, `permissions`) alongside validated fields
+- Access arbitrary manifest values via `$module->get('key', $default)`
+- Serialize modules directly with `json_encode($module)` — implements `JsonSerializable`
+- Expose clean typed APIs through `Module`, `ModuleHandle`, `ModuleRegistry` (implements `Countable`), and `ModuleBuilder`
 - Resolve routes, views, migrations, and other manifest-defined paths relative to the module root
 - Prevent unsafe absolute-path and `..` traversal escapes when resolving module paths
 - Cache discovered module metadata to a PHP file for faster repeated boots
@@ -59,6 +62,11 @@ $user->slug();
 $user->routes('http');
 $user->path('views');
 $user->migrations();
+$user->get('menu');          // custom manifest key
+$user->get('permissions', []);
+
+count($registry);             // Countable
+json_encode($user);           // JsonSerializable
 ```
 
 ## Full Example
@@ -90,6 +98,17 @@ Example output:
             "slug": "auth",
             "name": "Auth Module",
             "version": "1.0.0",
+            "manifest": {
+                "name": "Auth Module",
+                "slug": "auth",
+                "version": "1.0.0",
+                "menu": "Authentication",
+                "permissions": ["auth.manage", "auth.login"],
+                "providers": ["Marwa\\Module\\Examples\\Modules\\Auth\\AuthServiceProvider"],
+                "paths": { "views": "resources/views" },
+                "routes": { "http": "routes/http.php" },
+                "migrations": ["database/migrations/2026_01_01_000000_create_auth_tables.php"]
+            },
             "route": "/path/to/examples/modules/auth/routes/http.php",
             "views": "/path/to/examples/modules/auth/resources/views",
             "providers": [
@@ -165,6 +184,8 @@ Manifest rules:
 - `providers` and `migrations` must be arrays of non-empty strings
 - `paths` and `routes` must be maps with non-empty string keys and values
 - Duplicate module slugs across discovered modules are rejected
+- Unknown keys (e.g. `menu`, `permissions`, `widgets`) are validated for slug uniqueness but otherwise passed through unchanged
+- Access custom keys with `$module->get('menu')` or `$module->manifest()['menu']`
 
 ## Service Provider Bootstrap
 
@@ -187,10 +208,11 @@ $provider->register($app);
 
 ## Public API Overview
 
-- `ModuleRepository`: scans module directories and optionally persists cache files.
-- `ModuleRegistry`: keeps discovered modules in memory and resolves modules by slug or path.
+- `ModuleRepository`: scans module directories and optionally persists cache files. All manifest keys are preserved, not just the 7 validated fields.
+- `ModuleRegistry`: keeps discovered modules in memory. Implements `Countable` for `count($registry)`. Resolves modules by slug or path.
 - `ModuleBuilder`: high-level lookup API returning `ModuleHandle` instances.
-- `Module`: immutable module metadata wrapper.
+- `Module`: immutable module metadata wrapper with typed accessors (`name()`, `slug()`, `version()`, `path()`, `routeFile()`, `migrations()`, `providers()`), a generic `get(string $key, $default)` for arbitrary manifest values, `__debugInfo()` for clean `var_dump` output, and `JsonSerializable` for `json_encode($module)`.
+- `ModuleHandle`: lightweight delegate that mirrors `Module`'s public API.
 - `ModulesServiceProvider`: registers the repository, registry, builder, and module providers.
 
 ## Configuration Notes

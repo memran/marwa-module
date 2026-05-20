@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return array(
-  'generated_at' => 1774866613,
+  'generated_at' => 1779275102,
   'modules' =>
   array(
     'auth' =>
@@ -15,6 +15,12 @@ return array(
         'name' => 'Auth Module',
         'slug' => 'auth',
         'version' => '1.0.0',
+        'menu' => 'Authentication',
+        'permissions' =>
+        array(
+          0 => 'auth.manage',
+          1 => 'auth.login',
+        ),
         'providers' =>
         array(
           0 => 'Marwa\\Module\\Examples\\Modules\\Auth\\AuthServiceProvider',

@@ -12,7 +12,7 @@ use Marwa\Module\Support\ModulePath;
  * Cached access to modules discovered by the repository.
  * Also helps to find module by path.
  */
-class ModuleRegistry implements ModuleRegistryInterface
+class ModuleRegistry implements ModuleRegistryInterface, \Countable
 {
     /** @var array<string,Module> */
     private array $modules = [];
@@ -27,6 +27,11 @@ class ModuleRegistry implements ModuleRegistryInterface
     public function reload(): void
     {
         $this->modules = $this->repository->all($this->forceRefresh);
+    }
+
+    public function count(): int
+    {
+        return count($this->modules);
     }
 
     /**

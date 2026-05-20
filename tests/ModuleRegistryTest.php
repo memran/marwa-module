@@ -24,6 +24,14 @@ class ModuleRegistryTest extends TestCase
         parent::tearDown();
     }
 
+    public function test_registry_is_countable(): void
+    {
+        $repo = new ModuleRepository(__DIR__ . '/Fixtures/modules');
+        $registry = new ModuleRegistry($repo);
+
+        $this->assertCount(2, $registry);
+    }
+
     public function test_registry_can_get_module_by_slug(): void
     {
         $repo = new ModuleRepository(__DIR__ . '/Fixtures/modules');

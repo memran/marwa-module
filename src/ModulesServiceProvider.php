@@ -35,10 +35,6 @@ final class ModulesServiceProvider implements ModuleServiceProviderInterface
 
         foreach ($registry->all() as $module) {
             foreach ($module->providers() as $provider) {
-                if ($provider === '') {
-                    continue;
-                }
-
                 $this->assertValidProvider($provider);
                 if (isset($registeredProviders[$provider])) {
                     continue;
@@ -54,6 +50,8 @@ final class ModulesServiceProvider implements ModuleServiceProviderInterface
 
     private function store(object $app, string $id, mixed $value): void
     {
+        // Prefer add() over set() — PSR-11 containers commonly use add()
+        // for binding, while set() is a common fallback.
         if (method_exists($app, 'add')) {
             $app->add($id, $value);
             return;

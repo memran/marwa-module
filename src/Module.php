@@ -7,7 +7,7 @@ namespace Marwa\Module;
 use Marwa\Module\Support\ModulePath;
 use Marwa\Support\Arr;
 
-final class Module
+final class Module implements \JsonSerializable
 {
     /**
      * @param array<string, mixed> $manifest
@@ -17,6 +17,18 @@ final class Module
         private string $basePath,
         private array  $manifest
     ) {}
+
+    /**
+     * @return array{slug: string, name: string, version: ?string}
+     */
+    public function __debugInfo(): array
+    {
+        return [
+              'slug'    => $this->slug,
+              'name'    => $this->name(),
+              'version' => $this->version(),
+        ];
+    }
 
     public function slug(): string
     {
@@ -35,6 +47,25 @@ final class Module
         $version = Arr::get($this->manifest, 'version');
         return is_string($version) ? $version : null;
     }
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return Arr::get($this->manifest, $key, $default);
+    }
+
+    /**
+     * @return array{slug: string, name: string, version: ?string, manifest: array<string, mixed>}
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+              'slug'     => $this->slug,
+              'name'     => $this->name(),
+              'version'  => $this->version(),
+              'manifest' => $this->manifest,
+        ];
+    }
+
     /**
      * @return array<string, mixed>
      */

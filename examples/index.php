@@ -29,15 +29,12 @@ $builder = new ConcreteModuleBuilder($registry);
 
 $modules = [];
 foreach ($builder->all() as $slug => $module) {
-    $modules[] = [
-        'slug' => $slug,
-        'name' => $module->name(),
-        'version' => $module->version(),
-        'route' => $module->routeFile('http'),
-        'views' => $module->path('views'),
-        'providers' => $module->providers(),
-        'migrations' => $module->migrations(),
-    ];
+    $entry = $module->jsonSerialize();
+    $entry['route'] = $module->routeFile('http');
+    $entry['views'] = $module->path('views');
+    $entry['providers'] = $module->providers();
+    $entry['migrations'] = $module->migrations();
+    $modules[] = $entry;
 }
 
 $auth = $builder->current('auth');
