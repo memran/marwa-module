@@ -194,7 +194,7 @@ final class ModuleRepository implements ModuleRepositoryInterface
         $normalizedRoutes = $this->validateStringMap($routes, 'routes', $moduleDir);
         $normalizedMigrations = $this->validateStringList($migrations, 'migrations', $moduleDir);
 
-        return [
+        return array_merge($manifest, [
               'name'       => is_string($name) ? trim($name) : $dirName,
               'slug'       => $slug,
               'version'    => is_string($version) ? trim($version) : null,
@@ -202,7 +202,7 @@ final class ModuleRepository implements ModuleRepositoryInterface
               'paths'      => $normalizedPaths,
               'routes'     => $normalizedRoutes,
               'migrations' => $normalizedMigrations,
-        ];
+        ]);
     }
 
     /**
